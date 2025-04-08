@@ -1,0 +1,75 @@
+﻿id: c1c639b8-8816-4294-a6de-f6d888cd76cb
+name: POC - Conditional Access Policy Modified
+version: 1.1.1
+kind: Scheduled
+description: |-
+  Detects a Conditional Access Policy being modified by A user
+
+  A threat actor may try to modify policies to weaken the security controls in place.
+
+  Proband Operate a Break Glass Account, which should be excluded from all Conditional Access Policies
+
+  Verify Authorization
+
+  Change Control Process:
+  Check if the change was part of a pre-approved change management process.
+  Look for associated change tickets or approvals.
+
+  Identity Confirmation:
+  Verify the identity of the individual or team responsible for the change.
+  Confirm their authorization to modify conditional access policies.
+
+  Assess the Impact
+
+  Evaluate Changes: Analyze the updated policy to understand the implications:
+  User groups, devices, or locations affected by the change.
+  Applications or resources impacted (e.g., Office 365, VPN, SaaS applications).
+  Security controls modified (e.g., MFA requirements, risk-based access).
+
+  Policy Testing: If possible, test the modified policy in a controlled environment to assess:
+  Potential access disruptions.
+  Vulnerabilities introduced by the change.
+
+  Mitigate Risks (if needed)
+  Revert Unauthorized Changes:
+  Roll back the policy to its previous state immediately if the changes are unauthorized or pose a security risk.
+severity: Medium
+queryFrequency: 5m
+queryPeriod: 5m
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- DefenseEvasion
+relevantTechniques:
+- T1078
+query: |-
+  AuditLogs
+  | where LoggedByService == "Conditional Access"
+  | extend Name = InitiatedBy.user.userPrincipalName
+  | extend UserId = InitiatedBy.user.id
+  | extend Policy = TargetResources[0].name
+entityMappings:
+- entityType: Account
+  fieldMappings:
+  - identifier: Name
+    columnName: Name
+customDetails:
+  OperationName: OperationName
+  Policy: Policy
+subrelevantTechniques:
+- T1078.004
+suppressionDuration: 5h
+suppressionEnabled: false
+incidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: true
+    reopenClosedIncident: true
+    lookbackDuration: 5h
+    matchingMethod: AnyAlert
+    groupByEntities: []
+    groupByAlertDetails: []
+    groupByCustomDetails: []
+eventGroupingSettings:
+  aggregationKind: SingleAlert
+

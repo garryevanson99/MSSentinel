@@ -1,0 +1,42 @@
+﻿id: 236a88fd-2e57-4410-a1db-f6553a930b03
+name: POC - Azure Login Blocked by WIndows, MAC, IOS Compliance Conditional Access Policy
+kind: Scheduled
+description: "This Analytic Rule Looks for Failures on the following Conditional Access Policies \n\nCompany Policy SharePoint and Exchange For IOS\n \nLive - Require Compliant Device Windows & MacOS"
+severity: Medium
+queryFrequency: 5m
+queryPeriod: 5m
+triggerOperator: gt
+triggerThreshold: 0
+query: |
+  SigninLogs
+  | where TimeGenerated >= ago(24h)
+  | mvexpand PolicyResults = ConditionalAccessPolicies
+  | where PolicyResults.id == "5eeaf45e-2432-46c2-ac4f-0af0487128a2" or PolicyResults.id == "26b26bbb-0a01-46d0-b29b-92c5e7454a87"
+  | project UserPrincipalName, tostring(PolicyResults.result), TimeGenerated, ResultDescription,Identity,Location, Appname
+  | where PolicyResults_result contains "failure"
+  | where ResultDescription contains "Compliant Device"
+entityMappings:
+- entityType: Account
+  fieldMappings:
+  - identifier: Name
+    columnName: UserPrincipalName
+customDetails:
+  PolicyResult: PolicyResults_result
+  ResultDescription: ResultDescription
+  Location: Location
+  AppName: Appname
+suppressionDuration: 5h
+suppressionEnabled: false
+incidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: 5h
+    matchingMethod: AllEntities
+    groupByEntities: []
+    groupByAlertDetails: []
+    groupByCustomDetails: []
+eventGroupingSettings:
+  aggregationKind: SingleAlert
+

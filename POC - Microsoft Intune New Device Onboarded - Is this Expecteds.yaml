@@ -1,0 +1,55 @@
+﻿id: 149ac1b4-7afe-4df8-b27c-61e278f5ef29
+name: POC - Microsoft Intune New Device Onboarded - Is this Expected
+kind: Scheduled
+description: |-
+  User/Owner Verification: Confirm the identity of the user or owner who onboarded the device.
+
+  Policy Compliance: Ensure the device meets organizational policies (e.g., pre-registration, compliance checks).
+severity: Medium
+queryFrequency: 1h
+queryPeriod: PT1H5M
+triggerOperator: gt
+triggerThreshold: 0
+query: |-
+  IntuneAuditLogs
+  | extend PropertiesObject = parse_json(Properties)
+  | extend actorObject = parse_json(PropertiesObject.Actor)
+  | extend targetsObject = parse_json(PropertiesObject.Targetnames)
+  | extend activityString = case(
+              PropertiesObject.ActivityType == 0, "Create", 
+              PropertiesObject.ActivityType == 1, "Delete",
+              PropertiesObject.ActivityType == 2, "Patch",
+              PropertiesObject.ActivityType == 3, "Action",
+              PropertiesObject.ActivityType == 4, "SetReference", 
+              PropertiesObject.ActivityType == 5, "RemoveReference", 
+              PropertiesObject.ActivityType == 6, "Get", 
+              PropertiesObject.ActivityType == 7, "Search",
+              "Other"
+              )
+  | project TimeGenerated, PolicyName=targetsObject[0], SourceSystem, OperationName, activityString, ResultType, Properties, UPN=actorObject.UPN
+  | where activityString == "Create" and OperationName contains "ClientCertificate"
+  | where UPN contains "@"
+entityMappings:
+- entityType: Account
+  fieldMappings:
+  - identifier: Name
+    columnName: UPN
+sentinelEntitiesMappings:
+- columnName: UPN
+suppressionDuration: 5h
+suppressionEnabled: false
+incidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: 5h
+    matchingMethod: AllEntities
+    groupByEntities: []
+    groupByAlertDetails: []
+    groupByCustomDetails: []
+alertDetailsOverride:
+  alertDynamicProperties: []
+eventGroupingSettings:
+  aggregationKind: SingleAlert
+

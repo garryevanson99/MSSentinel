@@ -1,0 +1,69 @@
+﻿id: 91205dbc-505c-444e-a313-b0de10c56f5c
+name: POC - Microsoft Intune Policy Created and/or Assigned - Was this Verified by CAB
+kind: Scheduled
+description: |-
+  erify Authorization
+
+  Approval Records: Check for documentation or tickets that authorize the change.
+  Responsible Teams: Confirm with the responsible team (e.g., IT, network, or security team) that the change was planned and implemented intentionally.
+  Change Control Policy: Ensure the change adheres to the organization's change management process.
+
+  Assess Security Implications
+  Risk Analysis: Evaluate the impact of the configuration change on security:
+  Does it create new vulnerabilities or weaken existing protections?
+  Does it allow unauthorized access or expose sensitive data?
+
+  Test Environment Validation: Confirm whether the change was tested in with Pilot Users before the change was made.
+
+  Mitigate Issues (if needed)
+  Unauthorized or Risky Changes:
+  Revert the configuration to its previous state immediately.
+severity: Medium
+queryFrequency: 1h
+queryPeriod: PT1H5M
+triggerOperator: gt
+triggerThreshold: 0
+query: |
+  IntuneAuditLogs
+  | extend PropertiesObject = parse_json(Properties)
+  | extend actorObject = parse_json(PropertiesObject.Actor)
+  | extend targetsObject = parse_json(PropertiesObject.Targetnames)
+  | extend activityString = case(
+              PropertiesObject.ActivityType == 0, "Create", 
+              PropertiesObject.ActivityType == 1, "Delete",
+              PropertiesObject.ActivityType == 2, "Patch",
+              PropertiesObject.ActivityType == 3, "Action",
+              PropertiesObject.ActivityType == 4, "SetReference", 
+              PropertiesObject.ActivityType == 5, "RemoveReference", 
+              PropertiesObject.ActivityType == 6, "Get", 
+              PropertiesObject.ActivityType == 7, "Search",
+              "Other"
+              )
+  | project TimeGenerated, PolicyName=targetsObject[0], SourceSystem, OperationName, activityString, ResultType, Properties, UPN=actorObject.UPN
+  | where activityString == "Create" and OperationName !contains "ClientCertificate" and OperationName contains "Create DeviceConfigurationAssignment" or OperationName contains "Create DeviceConfiguration" or OperationName contains "Create DeviceManagementConfigurationPolicyAssignment"
+entityMappings:
+- entityType: Account
+  fieldMappings:
+  - identifier: Name
+    columnName: UPN
+customDetails:
+  ActivityString: activityString
+  OperationName: OperationName
+  PolicyName: PolicyName
+  SourceSystem: SourceSystem
+  ResultType: ResultType
+suppressionDuration: 5h
+suppressionEnabled: false
+incidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: 5h
+    matchingMethod: AllEntities
+    groupByEntities: []
+    groupByAlertDetails: []
+    groupByCustomDetails: []
+eventGroupingSettings:
+  aggregationKind: SingleAlert
+
