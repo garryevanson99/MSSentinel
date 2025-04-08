@@ -1,0 +1,85 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspace": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/ae9b3976-c04b-4ad9-8990-83bfdacbfa84')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/ae9b3976-c04b-4ad9-8990-83bfdacbfa84')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2023-12-01-preview",
+            "properties": {
+                "displayName": "POC - Administrator has Changed Users MFA/ Authentication  Methods",
+                "description": "Assess the Context\n\nWhy was the change made?\nUnderstand if the change was part of routine maintenance, an incident response, or user-requested support.\n\nWho approved the change?\nVerify if the administrator followed the proper approval process.\n\n\n2. Validate the Change\n\nCheck Logs: Confirm the MFA change in the system logs. Look for details like:\nWho made the change.\nTimestamp of the change.\nJustification or associated request ticket.\nVerify with User: Reach out to the affected user to confirm they are aware of the change and can access the updated MFA method.",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "AuditLogs\r\n| where OperationName == \"Admin updated security info\"\r\n| extend parsedTargetResources = parse_json(TargetResources)\r\n| mv-expand parsedTargetResources\r\n| extend modifiedProperties = parsedTargetResources.modifiedProperties\r\n| mv-expand modifiedProperties\r\n| where tostring(modifiedProperties.oldValue) != tostring(modifiedProperties.newValue)\r\n| project TimeGenerated, InitiatingUser=InitiatedBy.user.userPrincipalName, TargetedUser=parsedTargetResources.userPrincipalName, OldValue=modifiedProperties.oldValue, NewValue=modifiedProperties.newValue\r\n",
+                "queryFrequency": "PT15M",
+                "queryPeriod": "PT20M",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "startTimeUtc": null,
+                "tactics": [],
+                "techniques": [],
+                "subTechniques": [],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": false,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5H",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": {
+                    "alertDynamicProperties": []
+                },
+                "customDetails": {
+                    "OldValue": "OldValue",
+                    "NewValue": "NewValue",
+                    "TimeGenerated": "TimeGenerated"
+                },
+                "entityMappings": [
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "FullName",
+                                "columnName": "InitiatingUser"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "FullName",
+                                "columnName": "TargetedUser"
+                            }
+                        ]
+                    }
+                ],
+                "sentinelEntitiesMappings": [
+                    {
+                        "columnName": "TimeGenerated"
+                    }
+                ],
+                "templateVersion": null
+            }
+        }
+    ]
+}
