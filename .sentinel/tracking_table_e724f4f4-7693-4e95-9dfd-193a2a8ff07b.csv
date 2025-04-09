@@ -1,10 +1,10 @@
 FileName, CommitSha
-POC - Microsoft Sentinel Daily Data Ingestion Nearing Daily Limit.json,09a6a04ca2202b6615f3416bd897c8ad5220e75c
-POC - Microsoft Intune New Device Onboarded - Is this Expected.json,f846e794944cc7e8e8cf061e2b1ff09d4d7c071a
-POC - Azure Login Blocked by WIndows, MAC, IOS Compliance Conditional Access Policy.json,fa2bca52cb3faa7e49fb692cc85fc69e60606106
-POC - Microsoft Intune Policy Deleted- Was this Verified by CAB.json,21d8168c26071974131333e1e2ddd67225e9798e
-POC - Conditional Access Policy Modified.json,2506306bba377a39ca668035635efbebda76a2d7
-POC - Administrator has Changed Users MFA Authentication Methods.json,3c04bd021ff491a680f280b9454a22fb59038dbb
-POC Microsoft Intune Policy Created andor Assigned Was this Verified by CAB.json,130f3767e417facfeaeb3a6f723029672ce636de
 POC - Microsoft Intune Policy Modified- Was this Verified by CAB.json,5d4f9b42fa7639ca49d441468d3a5626145928fa
+POC - Administrator has Changed Users MFA Authentication Methods.json,3c04bd021ff491a680f280b9454a22fb59038dbb
+POC - Microsoft Intune New Device Onboarded - Is this Expected.json,f846e794944cc7e8e8cf061e2b1ff09d4d7c071a
+POC - Microsoft Sentinel Daily Data Ingestion Nearing Daily Limit.json,9a66af396ea93770bd53b10d8a9c7f2f58ad1682
+POC - Conditional Access Policy Modified.json,2506306bba377a39ca668035635efbebda76a2d7
+POC - Azure Login Blocked by WIndows, MAC, IOS Compliance Conditional Access Policy.json,fa2bca52cb3faa7e49fb692cc85fc69e60606106
+POC Microsoft Intune Policy Created andor Assigned Was this Verified by CAB.json,130f3767e417facfeaeb3a6f723029672ce636de
+POC - Microsoft Intune Policy Deleted- Was this Verified by CAB.json,21d8168c26071974131333e1e2ddd67225e9798e
 
