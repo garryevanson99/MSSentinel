@@ -1,0 +1,74 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspace": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/a63322e6-20ba-416c-92c7-49361779c6a5')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/a63322e6-20ba-416c-92c7-49361779c6a6')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2023-12-01-preview",
+            "properties": {
+                "displayName": "POC - Microsoft Intune Policy Deleted- Was this Verified by CAB",
+                "description": "erify Authorization\n\nApproval Records: Check for documentation or tickets that authorize the change.\nResponsible Teams: Confirm with the responsible team (e.g., IT, network, or security team) that the change was planned and implemented intentionally.\nChange Control Policy: Ensure the change adheres to the organization's change management process.\n\nAssess Security Implications\nRisk Analysis: Evaluate the impact of the configuration change on security:\nDoes it create new vulnerabilities or weaken existing protections?\nDoes it allow unauthorized access or expose sensitive data?\n\nTest Environment Validation: Confirm whether the change was tested in with Pilot Users before the change was made.\n\nMitigate Issues (if needed)\nUnauthorized or Risky Changes:\nRevert the configuration to its previous state immediately.",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "IntuneAuditLogs\n| extend PropertiesObject = parse_json(Properties)\n| extend actorObject = parse_json(PropertiesObject.Actor)\n| extend targetsObject = parse_json(PropertiesObject.TargetDisplayNames)\n| extend activityString = case(\n                              PropertiesObject.ActivityType == 0,\n                              \"Create\", \n                              PropertiesObject.ActivityType == 1,\n                              \"Delete\",\n                              PropertiesObject.ActivityType == 2,\n                              \"Patch\",\n                              PropertiesObject.ActivityType == 3,\n                              \"Action\",\n                              PropertiesObject.ActivityType == 4,\n                              \"SetReference\", \n                              PropertiesObject.ActivityType == 5,\n                              \"RemoveReference\", \n                              PropertiesObject.ActivityType == 6,\n                              \"Get\", \n                              PropertiesObject.ActivityType == 7,\n                              \"Search\",\n                              \"Other\"\n                          )\n| project\n    TimeGenerated,\n    PolicyName=targetsObject[0],\n    SourceSystem,\n    OperationName,\n    activityString,\n    ResultType,\n    Properties,\n    UPN=actorObject.UPN\n| where activityString == \"Delete\" and OperationName !contains \"ClientCertificate\" and OperationName contains \"Delete DeviceConfiguration\" or OperationName contains \"Delete DeviceManagementConfigurationPolicy\" or OperationName contains \"Delete DeviceManagementConfigurationPolicyAssignment\" or OperationName contains \"Delete DeviceManagementConfigurationAssignment\"\n",
+                "queryFrequency": "PT1H",
+                "queryPeriod": "PT1H5M",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "startTimeUtc": null,
+                "tactics": [],
+                "techniques": [],
+                "subTechniques": [],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": false,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5H",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": {
+                    "alertDynamicProperties": []
+                },
+                "customDetails": {
+                    "ActivityString": "activityString",
+                    "OperationName": "OperationName",
+                    "PolicyName": "PolicyName",
+                    "SourceSystem": "SourceSystem",
+                    "ResultType": "ResultType"
+                },
+                "entityMappings": [
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Name",
+                                "columnName": "UPN"
+                            }
+                        ]
+                    }
+                ],
+                "sentinelEntitiesMappings": null,
+                "templateVersion": null
+            }
+        }
+    ]
+}

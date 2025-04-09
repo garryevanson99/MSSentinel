@@ -1,0 +1,71 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspace": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/236a88fd-2e57-4410-a1db-f6553a930b02')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/236a88fd-2e57-4410-a1db-f6553a930b03')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2023-12-01-preview",
+            "properties": {
+                "displayName": "POC - Azure Login Blocked by WIndows, MAC, IOS Compliance Conditional Access Policy",
+                "description": "This Analytic Rule Looks for Failures on the following Conditional Access Policies \n\nCompany Policy SharePoint and Exchange For IOS\n \nLive - Require Compliant Device Windows & MacOS",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "SigninLogs\n| where TimeGenerated >= ago(24h)\n| mvexpand PolicyResults = ConditionalAccessPolicies\n| where PolicyResults.id == \"5eeaf45e-2432-46c2-ac4f-0af0487128a2\" or PolicyResults.id == \"26b26bbb-0a01-46d0-b29b-92c5e7454a87\"\n| project UserPrincipalName, tostring(PolicyResults.result), TimeGenerated, ResultDescription,Identity,Location, AppDisplayName\n| where PolicyResults_result contains \"failure\"\n| where ResultDescription contains \"Compliant Device\"\n",
+                "queryFrequency": "PT5M",
+                "queryPeriod": "PT5M",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "startTimeUtc": null,
+                "tactics": [],
+                "techniques": [],
+                "subTechniques": [],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": false,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5H",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": {
+                    "PolicyResult": "PolicyResults_result",
+                    "ResultDescription": "ResultDescription",
+                    "Location": "Location",
+                    "AppName": "AppDisplayName"
+                },
+                "entityMappings": [
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Name",
+                                "columnName": "UserPrincipalName"
+                            }
+                        ]
+                    }
+                ],
+                "sentinelEntitiesMappings": null,
+                "templateVersion": null
+            }
+        }
+    ]
+}
