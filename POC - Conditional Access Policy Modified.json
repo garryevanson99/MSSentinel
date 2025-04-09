@@ -1,0 +1,75 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspace": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/c1c639b8-8816-4294-a6de-f6d888cd76cb')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/c1c639b8-8816-4294-a6de-f6d888cd76cb')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2023-12-01-preview",
+            "properties": {
+                "displayName": "POC - Conditional Access Policy Modified",
+                "description": "Detects a Conditional Access Policy being modified by A user\n\nA threat actor may try to modify policies to weaken the security controls in place.\n\nProband Operate a Break Glass Account, which should be excluded from all Conditional Access Policies\n\nVerify Authorization\n\nChange Control Process:\nCheck if the change was part of a pre-approved change management process.\nLook for associated change tickets or approvals.\n\nIdentity Confirmation:\nVerify the identity of the individual or team responsible for the change.\nConfirm their authorization to modify conditional access policies.\n\nAssess the Impact\n\nEvaluate Changes: Analyze the updated policy to understand the implications:\nUser groups, devices, or locations affected by the change.\nApplications or resources impacted (e.g., Office 365, VPN, SaaS applications).\nSecurity controls modified (e.g., MFA requirements, risk-based access).\n\nPolicy Testing: If possible, test the modified policy in a controlled environment to assess:\nPotential access disruptions.\nVulnerabilities introduced by the change.\n\nMitigate Risks (if needed)\nRevert Unauthorized Changes:\nRoll back the policy to its previous state immediately if the changes are unauthorized or pose a security risk.",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "AuditLogs\n| where LoggedByService == \"Conditional Access\"\n| extend Name = InitiatedBy.user.userPrincipalName\n| extend UserId = InitiatedBy.user.id\n| extend Policy = TargetResources[0].displayName",
+                "queryFrequency": "PT5M",
+                "queryPeriod": "PT5M",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "startTimeUtc": null,
+                "tactics": [
+                    "DefenseEvasion"
+                ],
+                "techniques": [
+                    "T1078"
+                ],
+                "subTechniques": [
+                    "T1078.004"
+                ],
+                "alertRuleTemplateName": "25a7f951-54b7-4cf5-9862-ebc04306c590",
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": true,
+                        "reopenClosedIncident": true,
+                        "lookbackDuration": "PT5H",
+                        "matchingMethod": "AnyAlert",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": {
+                    "OperationName": "OperationName",
+                    "Policy": "Policy"
+                },
+                "entityMappings": [
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Name",
+                                "columnName": "Name"
+                            }
+                        ]
+                    }
+                ],
+                "sentinelEntitiesMappings": null,
+                "templateVersion": "1.1.1"
+            }
+        }
+    ]
+}
