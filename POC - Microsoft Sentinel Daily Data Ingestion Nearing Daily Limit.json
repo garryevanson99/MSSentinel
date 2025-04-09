@@ -18,7 +18,7 @@
                 "description": "Investigate the Cause\n\nReview the Microsoft Sentinel Cost and Workspace Usage Report Workbooks to determine which tables are consuming the most storage and why. \n\n\n\nMitigate Immediate Impact\nReduce Overload:\nTemporarily filter or throttle non-critical logs at the source or SIEM ingestion point.\nExpand storage or processing resources if the threshold was exceeded due to legitimate volume increases.\nStabilize SIEM: Check for and address any performance degradation in the SIEM system.",
                 "severity": "High",
                 "enabled": true,
-                "query": "//Or below query also works.\nUsage\n| where TimeGenerated > startofday(ago(1d))\n| where StartTime >= startofday(ago(1d)) and EndTime <= startofday(now())\n| where IsBillable == true\n| summarize TotalVolumeGB = sum(Quantity) / 1000\n| where TotalVolumeGB >6.5 //threshold\n",
+                "query": "//Or below query also works.\nUsage\n| where TimeGenerated > startofday(ago(1d))\n| where StartTime >= startofday(ago(1d)) and EndTime <= startofday(now())\n| where IsBillable == true\n| summarize TotalVolumeGB = sum(Quantity) / 1000\n| where TotalVolumeGB >16.5 //threshold\n",
                 "queryFrequency": "PT1H",
                 "queryPeriod": "PT1H",
                 "triggerOperator": "GreaterThan",
